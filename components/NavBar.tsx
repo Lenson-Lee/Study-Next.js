@@ -1,23 +1,27 @@
 import Link from "next/link";
-import { useRouter } from "next/router";
+import { usePathname } from "next/navigation";
 
 export default function NavBar() {
-  const router = useRouter();
+  const router = usePathname();
+
   return (
-    <nav>
-      <img src="/vercel.svg" />
-      <div>
-        <Link className={router.pathname === "/" ? "active" : ""} href="/">
+    <nav className="max-w-screen-2xl mx-auto py-5 border-b-2">
+      {/* <img src="/vercel.svg" /> */}
+      <div className="text-lg flex justify-center space-x-10">
+        <Link
+          className={router === "/" ? "active text-pink-400 " : ""}
+          href="/"
+        >
           Home
         </Link>
         <Link
-          className={router.pathname === "/about" ? "active" : ""}
+          className={router === "/about" ? "active text-pink-400" : ""}
           href="/about"
         >
           About
         </Link>
       </div>
-      <style jsx>{`
+      {/* <style jsx>{`
         nav {
           display: flex;
           gap: 10px;
@@ -38,12 +42,13 @@ export default function NavBar() {
         }
         .active {
           color: tomato;
+          background: yellow;
         }
         nav div {
           display: flex;
           gap: 10px;
         }
-      `}</style>
+      `}</style> */}
     </nav>
   );
 }
