@@ -2,11 +2,16 @@
 // https://velog.io/@khy226/React-Toast-UI-Editor-%EC%A0%81%EC%9A%A9%EA%B8%B0
 
 "use client";
-import React, { useState, useEffect, useRef } from "react";
+
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { usePathname } from "next/navigation";
 import dynamic from "next/dynamic";
+import Link from "next/link";
 
 const ToastEditor = dynamic(() => import("components/editor/ToastEditor"), {
+  ssr: false,
+});
+const ToastViewer = dynamic(() => import("components/editor/ToastViewer"), {
   ssr: false,
 });
 
@@ -14,7 +19,6 @@ const about = () => {
   const router = usePathname();
 
   const editorRef = useRef<any>(null);
-
   const [inputName, setInputName] = useState("");
   const [inputMail, setInputMail] = useState("");
   const [inputPhone, setInputPhone] = useState("");
@@ -51,11 +55,37 @@ const about = () => {
       alert(data.message);
     });
   };
+
+  const exportTxt = useCallback(() => {
+    //에디터의 내용 들어옴
+    const editorIns = editorRef?.current?.getInstance();
+    const content = editorIns.getMarkdown();
+
+    let fileName = inputName ? `${inputName}.md` : "unknown.md";
+    const element = document.createElement("a");
+    const file = new Blob([content], {
+      type: "text/plain",
+    });
+
+    element.href = URL.createObjectURL(file);
+
+    element.download = fileName;
+    document.body.appendChild(element); // FireFox
+    element.click();
+    element.remove();
+  }, []);
+
   return (
     <div className="mt-10 max-w-screen-xl mx-auto">
       <form onSubmit={submitData} className="flex space-x-5">
         <div className="w-full">
           <ToastEditor content="" editorRef={editorRef} />
+          <button
+            onClick={() => exportTxt()}
+            className="px-4 py-1 border-2 border-blue-600 text-blue-600 text-sm font-semibold rounded-lg mt-10"
+          >
+            내보내기
+          </button>
         </div>
         <div className="w-2/3 mx-auto space-y-5">
           <div className="w-full rounded-lg py-3 px-4 border border-gray-300 outline-none">
@@ -95,6 +125,9 @@ const about = () => {
           </button>
         </div>
       </form>
+      <div className="mt-10 border rounded-lg py-2 px-10">
+        <ToastViewer />
+      </div>
     </div>
   );
 };
