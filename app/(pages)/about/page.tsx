@@ -7,6 +7,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { usePathname } from "next/navigation";
 import dynamic from "next/dynamic";
 import Link from "next/link";
+import ResponseCache from "next/dist/server/response-cache";
 
 const ToastEditor = dynamic(() => import("components/editor/ToastEditor"), {
   ssr: false,
@@ -23,6 +24,12 @@ const about = () => {
   const [inputMail, setInputMail] = useState("");
   const [inputPhone, setInputPhone] = useState("");
 
+  const [dataList, setDataList] = useState([]);
+
+  //수정/삭제 버튼 클릭시 ID 저장
+  const [editTarget, setEditTarget] = useState("");
+
+  //Data 전송
   const submitData = async (e: React.SyntheticEvent) => {
     e.preventDefault();
 
@@ -38,9 +45,7 @@ const about = () => {
         phone: parseInt(inputPhone),
       };
 
-      //app에 파일 폴더 추가해서 (storage/files 등) 파일이름겹치면 안되서 랜덤Nan수 생성(특수문자,숫자,하이픈등 금지)파일저장 md파일로 저장되도록..,
-      //날짜+
-      // axios로
+      //app에 파일 폴더 추가해서 (storage/files 등) 파일이름겹치면 안되서 랜덤Nan수 생성(특수문자,숫자,하이픈등 금지)파일저장 md파일로 저장되도록 axios로
       const response = await fetch("/api/post/create", {
         method: "POST",
         body: JSON.stringify(data),
@@ -52,10 +57,90 @@ const about = () => {
     };
 
     postData().then((data) => {
+      console.log(data);
       alert(data.message);
     });
-  };
+  }; // submitData end ===================================
 
+  const deleteData = async (target: React.SyntheticEvent) => {
+    // e.preventDefault(); // 지우니까 작동한당..
+
+    const targetId = async () => {
+      const data = {
+        id: target,
+      };
+      // console.log("타겟아이디 : " + data.id);
+
+      //app에 파일 폴더 추가해서 (storage/files 등) 파일이름겹치면 안되서 랜덤Nan수 생성(특수문자,숫자,하이픈등 금지)파일저장 md파일로 저장되도록 axios로
+      const response = await fetch("/api/post/delete", {
+        method: "delete",
+        body: JSON.stringify(data),
+        headers: {
+          Accept: "application / json",
+        },
+      });
+      return response.json();
+    };
+    targetId().then((data) => {
+      alert(data.message);
+    });
+  }; // deleteData end ===================================
+
+  //readData
+  const dataListRender = Object.entries(dataList).map((item, index) => {
+    return (
+      <div
+        key={index}
+        className="w-full border rounded-lg bg-white p-10 relative"
+      >
+        <div className="absolute right-10 top-8 space-x-1">
+          <button
+            onClick={() => {
+              setEditTarget(item[1].id);
+            }}
+            className="bg-gray-400 hover:bg-gray-500 text-white px-3 py-1 rounded-lg text-xs"
+          >
+            수정
+          </button>
+          <button
+            onClick={(e) => {
+              setEditTarget(item[1].id);
+              deleteData(item[1].id);
+            }}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-lg text-xs"
+          >
+            삭제
+          </button>
+        </div>
+        <div className="text-lg text-gray-500">
+          이름 : {item[1].name} / 아이디 : {item[1].id}
+        </div>
+        <div className="text-lg text-gray-500">연락처 : {item[1].phone}</div>
+        <div className="text-lg text-gray-500">이메일 : {item[1].email}</div>
+        <div className="text-lg text-gray-500">내용 : {item[1].content}</div>
+      </div>
+    );
+  });
+
+  //getData
+  useEffect(() => {
+    async function getData() {
+      const response = await fetch("/api/get/read")
+        .then((res) => res.json())
+        .then((jsondata) => {
+          setDataList(jsondata.result);
+          return jsondata.result;
+        })
+        .catch(() => {
+          console.log("실패해요ㅜㅜ");
+        });
+    }
+    getData();
+  }, []); //getData end =======================================
+
+  //app에 파일 폴더 추가해서 (storage/files 등) 파일이름겹치면 안되서 랜덤Nan수 생성(특수문자,숫자,하이픈등 금지)파일저장 md파일로 저장되도록 axios로
+
+  //Editor 내용 .md파일로 다운로드
   const exportTxt = useCallback(() => {
     //에디터의 내용 들어옴
     const editorIns = editorRef?.current?.getInstance();
@@ -73,7 +158,7 @@ const about = () => {
     document.body.appendChild(element); // FireFox
     element.click();
     element.remove();
-  }, []);
+  }, []); //exportTxt end===============================
 
   return (
     <div className="mt-10 max-w-screen-xl mx-auto">
@@ -82,9 +167,9 @@ const about = () => {
           <ToastEditor content="" editorRef={editorRef} />
           <button
             onClick={() => exportTxt()}
-            className="px-4 py-1 border-2 border-blue-600 text-blue-600 text-sm font-semibold rounded-lg mt-10"
+            className="px-4 py-1 border-2 border-blue-600 text-blue-600 text-sm font-semibold rounded-lg mt-8"
           >
-            내보내기
+            텍스트다운
           </button>
         </div>
         <div className="w-2/3 mx-auto space-y-5">
@@ -127,6 +212,15 @@ const about = () => {
       </form>
       <div className="mt-10 border rounded-lg py-2 px-10">
         <ToastViewer />
+      </div>
+
+      {/* ================================================================ */}
+      <p className="mt-10 text-2xl font-semibold">Data List</p>
+
+      <div className="absolute left-0 right-0 bg-gray-100 w-full py-10 px-5 mt-10">
+        <div className="grid grid-cols-2 max-w-screen-xl mx-auto gap-5">
+          {dataListRender}
+        </div>
       </div>
     </div>
   );

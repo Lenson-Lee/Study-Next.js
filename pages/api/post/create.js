@@ -1,4 +1,11 @@
 import { PrismaClient } from "@prisma/client";
+//express.js server
+//api : server side
+
+//
+
+//시간읽어서 1초전.. 서버시간...
+//node.js에서 쓰는 mysql
 
 const prisma = new PrismaClient();
 

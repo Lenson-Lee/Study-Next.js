@@ -13,7 +13,7 @@ const PostEditor = ({ content = "", editorRef }: Props) => {
       {editorRef && (
         <Editor
           ref={editorRef}
-          initialValue={content || ""}
+          initialValue={content}
           initialEditType="markdown"
           height="420px"
           useCommandShortcut={true}
