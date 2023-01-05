@@ -4,7 +4,6 @@
 // //
 
 // //시간읽어서 1초전.. 서버시간...
-// //node.js에서 쓰는 mysql
 
 import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
