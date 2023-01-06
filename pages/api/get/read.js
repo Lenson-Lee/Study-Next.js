@@ -9,7 +9,18 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 export default async function handler(req, res) {
-  const result = await prisma.user.findMany();
+  console.log(req.body);
+  const result = await prisma.user.findMany({
+    orderBy: [
+      {
+        role: "desc",
+      },
+      {
+        id: "desc",
+      },
+    ],
+    // take: 6,
+  });
   console.log("GET완료, JSON에 들어가요옹");
   res.status(200).json({ result }); // 너가 없어서 내가 하루를 날렸어....
 }
