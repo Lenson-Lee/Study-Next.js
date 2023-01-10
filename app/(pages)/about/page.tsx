@@ -19,6 +19,7 @@ const ToastViewer = dynamic(() => import("components/editor/ToastViewer"), {
 const About = () => {
   const router = usePathname();
   const editorRef = useRef<any>(null);
+  const [inputTitle, setInputTitle] = useState("");
   const [inputName, setInputName] = useState("");
   const [inputMail, setInputMail] = useState("");
   const [inputPhone, setInputPhone] = useState("");
@@ -229,6 +230,7 @@ const About = () => {
 
   //getData
   useEffect(() => {
+    // ========================================================
     async function getData() {
       const response = await fetch("/api/get/read")
         .then((res) => res.json())
@@ -253,36 +255,57 @@ const About = () => {
   //app에 파일 폴더 추가해서 (storage/files 등) 파일이름겹치면 안되서 랜덤Nan수 생성(특수문자,숫자,하이픈등 금지)파일저장 md파일로 저장되도록 axios로
 
   //Editor 내용 .md파일로 다운로드
-  const exportTxt = useCallback(() => {
+  const exportTxt = async (e: React.SyntheticEvent) => {
+    e.preventDefault();
+
     //에디터의 내용 들어옴
     const editorIns = editorRef?.current?.getInstance();
     const content = editorIns.getMarkdown();
 
     let fileName = inputName ? `${inputName}.md` : "unknown.md";
-    const element = document.createElement("a");
-    const file = new Blob([content], {
-      type: "text/plain",
-    });
+    //텍스트 다운 클릭 시 components/text 디렉터리에 파일 생성
+    const response = await fetch("/api/file/createFile", {
+      method: "post",
+      body: JSON.stringify({ title: inputTitle, content: content }),
+      headers: {
+        Accept: "application / json",
+      },
+    }); // =================================================
 
-    element.href = URL.createObjectURL(file);
+    // 클라이언트에서 진행하는 다운로드 -> 웹에서 다운표시가 된다.
+    // fetch를 통해 서버 api 경로에서 다운로드 -> 프로젝트 내에 다운된다.
+    // const element = document.createElement("a");
+    // const file = new Blob([content], {
+    //   type: "text/plain",
+    // });
+    // element.href = URL.createObjectURL(file);
 
-    element.download = fileName;
-    document.body.appendChild(element); // FireFox
-    element.click();
-    element.remove();
-  }, []); //exportTxt end===============================
-
+    // element.download = fileName;
+    // document.body.appendChild(element); // FireFox
+    // element.click();
+    // element.remove();
+  }; //exportTxt end===============================
   return (
     <div className="mt-10 max-w-screen-xl mx-auto">
+      <button
+        onClick={exportTxt}
+        className="px-4 py-1 border-2 mb-2 border-blue-600 text-blue-600 text-sm font-semibold rounded-lg mt-8"
+      >
+        텍스트다운
+      </button>
       <form onSubmit={submitData} className="flex space-x-5">
         <div className="w-full">
+          <div className="w-full rounded-lg py-3 px-4 mb-5 border border-gray-300 outline-none">
+            <p className="font-semibold text-xs">파일명</p>
+            <input
+              type="text"
+              onChange={(e) => setInputTitle(e.target.value)}
+              name="name"
+              className="outline-none"
+              placeholder="Example.md에서 Example을 넣어용"
+            />
+          </div>
           <ToastEditor content="" editorRef={editorRef} />
-          <button
-            onClick={() => exportTxt()}
-            className="px-4 py-1 border-2 border-blue-600 text-blue-600 text-sm font-semibold rounded-lg mt-8"
-          >
-            텍스트다운
-          </button>
         </div>
         <div className="w-2/3 mx-auto space-y-5">
           <div className="w-full rounded-lg py-3 px-4 border border-gray-300 outline-none">
@@ -315,7 +338,7 @@ const About = () => {
           </div>
           <button
             type="submit"
-            onClick={submitData}
+            // onClick={submitData}
             className="w-full py-4 text-lg font-semibold bg-blue-600 text-white rounded-lg"
           >
             보내기
