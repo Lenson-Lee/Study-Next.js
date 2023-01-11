@@ -6,8 +6,6 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { usePathname } from "next/navigation";
 import dynamic from "next/dynamic";
-import Pagenation from "components/Pagenation";
-import PagedData from "components/PagedData";
 
 const ToastEditor = dynamic(() => import("components/editor/ToastEditor"), {
   ssr: false,
@@ -228,6 +226,45 @@ const About = () => {
     );
   };
 
+  //Editor 내용 .md파일로 다운로드
+  const exportTxt = async (e: React.SyntheticEvent) => {
+    e.preventDefault();
+
+    //에디터의 내용 들어옴
+    const editorIns = editorRef?.current?.getInstance();
+    const content = editorIns.getMarkdown();
+    //텍스트 다운 클릭 시 components/text 디렉터리에 파일 생성
+    const response = await fetch("/api/file/createFile", {
+      method: "post",
+      body: JSON.stringify({ title: inputTitle, content: content }),
+      headers: {
+        Accept: "application / json",
+      },
+    }); // =================================================
+
+    // 클라이언트에서 진행하는 다운로드 Blob -> 웹에서 다운표시가 된다.
+    // fetch를 통해 서버 api 경로에서 다운로드 -> 프로젝트 내에 다운된다.
+    // const element = document.createElement("a");
+    // const file = new Blob([content], {
+    //   type: "text/plain",
+    // });
+    // element.href = URL.createObjectURL(file);
+
+    // let fileName = inputName ? `${inputName}.md` : "unknown.md";
+    // element.download = fileName;
+    // document.body.appendChild(element); // FireFox
+    // element.click();
+    // element.remove();
+  }; //exportTxt end===============================
+
+  useEffect(() => {
+    async function getRead() {
+      const readResponse = await fetch("/api/file/readFile");
+      const result = await readResponse.json();
+    }
+    getRead();
+  }, [exportTxt]);
+
   //getData
   useEffect(() => {
     // ========================================================
@@ -235,6 +272,10 @@ const About = () => {
       const response = await fetch("/api/get/read")
         .then((res) => res.json())
         .then((jsondata) => {
+          console.log("예시에요");
+
+          console.log(jsondata);
+
           setDataList(jsondata.result);
           return jsondata.result;
         })
@@ -254,37 +295,6 @@ const About = () => {
 
   //app에 파일 폴더 추가해서 (storage/files 등) 파일이름겹치면 안되서 랜덤Nan수 생성(특수문자,숫자,하이픈등 금지)파일저장 md파일로 저장되도록 axios로
 
-  //Editor 내용 .md파일로 다운로드
-  const exportTxt = async (e: React.SyntheticEvent) => {
-    e.preventDefault();
-
-    //에디터의 내용 들어옴
-    const editorIns = editorRef?.current?.getInstance();
-    const content = editorIns.getMarkdown();
-
-    let fileName = inputName ? `${inputName}.md` : "unknown.md";
-    //텍스트 다운 클릭 시 components/text 디렉터리에 파일 생성
-    const response = await fetch("/api/file/createFile", {
-      method: "post",
-      body: JSON.stringify({ title: inputTitle, content: content }),
-      headers: {
-        Accept: "application / json",
-      },
-    }); // =================================================
-
-    // 클라이언트에서 진행하는 다운로드 -> 웹에서 다운표시가 된다.
-    // fetch를 통해 서버 api 경로에서 다운로드 -> 프로젝트 내에 다운된다.
-    // const element = document.createElement("a");
-    // const file = new Blob([content], {
-    //   type: "text/plain",
-    // });
-    // element.href = URL.createObjectURL(file);
-
-    // element.download = fileName;
-    // document.body.appendChild(element); // FireFox
-    // element.click();
-    // element.remove();
-  }; //exportTxt end===============================
   return (
     <div className="mt-10 max-w-screen-xl mx-auto">
       <button
@@ -338,7 +348,7 @@ const About = () => {
           </div>
           <button
             type="submit"
-            // onClick={submitData}
+            onClick={submitData}
             className="w-full py-4 text-lg font-semibold bg-blue-600 text-white rounded-lg"
           >
             보내기
@@ -356,8 +366,6 @@ const About = () => {
         <div className="max-w-screen-xl mx-auto">
           <div className="grid grid-cols-2 gap-5">{dataListRender}</div>
           <div className="flex justify-center mt-5 ">{pagenationList()}</div>
-          {/* <PagedData dataList ={dataList} /> */}
-          {/* <Pagenation /> */}
         </div>
       </div>
     </div>

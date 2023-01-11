@@ -1,11 +1,16 @@
+export const config = {
+  api: {
+    externalResolver: true,
+  },
+};
 const createFile = (req, res) => {
-  console.log("도착", JSON.parse(req.body));
+  // console.log("createFile 도착", JSON.parse(req.body));
   const obj = JSON.parse(req.body); //title을 String으로 사용하기 위해
   const fs = require("fs");
 
   const directory = fs.existsSync("./components/text/"); //디렉토리 경로 입력
-  console.log("Type : ", typeof obj.title);
-  console.log("Boolean : ", directory);
+  // console.log("Type : ", typeof obj.title);
+  // console.log("Boolean : ", directory);
 
   if (!fs.existsSync("./components/text/" + obj.title)) {
     fs.mkdirSync("./components/text/" + obj.title);
@@ -16,12 +21,11 @@ const createFile = (req, res) => {
     "./components/" + "text/" + obj.title + "/" + obj.title + ".md",
     req.body,
     function (err) {
-      // console.log(content);
-      console.log(req.body);
       if (err === null) {
-        console.log("파일쓰기 완성했어용^_^V");
+        // console.log(req.body);
+        console.log("createFile 완성했어용(ฅ^･ω･^ ฅ) ");
       } else {
-        console.log("파일쓰기 실패했어용ㅜㅜ");
+        console.log("createFile 실패했어용૮( ꒦ິ࿄꒦ີ)ა ");
         console.log(err);
       }
     }
