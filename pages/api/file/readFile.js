@@ -13,7 +13,6 @@ export default async function handler(req, res) {
         console.log("ERROR!!!!!");
         console.error(err);
       }
-      console.log("data : ", data);
       res.status(200).json({ data: data }); //{키:값}으로 해야함( ꒦ິ࿄꒦ີ)
     }
   );

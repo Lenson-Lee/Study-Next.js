@@ -24,6 +24,11 @@ const About = () => {
 
   //getData()로 불러온 DB
   const [dataList, setDataList] = useState([]);
+
+  //exportTxt()로 저장한 MD파일 클라이언트로 불러와 ToastViewer로 이동
+  const [title, setTitle] = useState();
+  const [content, setContent] = useState();
+
   //페이징 처리된 데이터
   const [pageDataList, setPageDataList] = useState([]);
 
@@ -257,10 +262,36 @@ const About = () => {
     // element.remove();
   }; //exportTxt end===============================
 
+  const updateTxt = async (target: React.SyntheticEvent) => {
+    // target.preventDefault();
+    const targetId = async () => {
+      const data = {
+        id: title,
+      };
+
+      //app에 파일 폴더 추가해서 (storage/files 등) 파일이름겹치면 안되서 랜덤Nan수 생성(특수문자,숫자,하이픈등 금지)파일저장 md파일로 저장되도록 axios로
+      const response = await fetch("/api/file/updateFile", {
+        method: "put",
+        body: JSON.stringify(data),
+        headers: {
+          Accept: "application / json",
+        },
+      });
+      return response.json();
+    };
+
+    targetId().then((data) => {
+      alert(data.message);
+    });
+  };
   useEffect(() => {
     async function getRead() {
       const readResponse = await fetch("/api/file/readFile");
       const result = await readResponse.json();
+
+      const obj = JSON.parse(result.data);
+      setTitle(obj.title);
+      setContent(obj.content);
     }
     getRead();
   }, [exportTxt]);
@@ -272,10 +303,6 @@ const About = () => {
       const response = await fetch("/api/get/read")
         .then((res) => res.json())
         .then((jsondata) => {
-          console.log("예시에요");
-
-          console.log(jsondata);
-
           setDataList(jsondata.result);
           return jsondata.result;
         })
@@ -355,8 +382,14 @@ const About = () => {
           </button>
         </div>
       </form>
-      <div className="mt-10 border rounded-lg py-2 px-10">
-        <ToastViewer />
+      <div className="mt-10 border rounded-lg py-2 px-10 relative">
+        <button
+          onClick={updateTxt}
+          className="absolute right-10 top-5 px-2 py-1 border border-blue-600 text-blue-600 rounded-lg"
+        >
+          수정하기
+        </button>
+        <ToastViewer title={title} content={content} />
       </div>
 
       {/* ================================================================ */}
